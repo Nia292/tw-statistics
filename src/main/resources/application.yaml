@@ -1,0 +1,11 @@
+thrallwars:
+  targets:
+    - name: localhost
+      host: "172.0.0.1"
+      port: 25575
+      password: secret
+    - name: mycoolserver
+      host: "185.55.77.88"
+      port: 25576
+      password: secret
+

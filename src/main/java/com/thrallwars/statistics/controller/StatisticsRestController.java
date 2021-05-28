@@ -37,6 +37,7 @@ public class StatisticsRestController {
 
     @GetMapping("plain/player-wallet")
     String getPlayerWalletsPlain(@RequestParam(name = "target", required = true) String target) {
-        return rconService.getPippiGoldPlain(target);
+//        return rconService.getPippiGoldPlain(target);
+        return "";
     }
 }

@@ -1,5 +1,6 @@
-package com.thrallwars.statistics.service;
+package com.thrallwars.statistics.repo;
 
+import com.thrallwars.statistics.dto.PlayerWalletDTO;
 import com.thrallwars.statistics.entity.PlayerWallet;
 import com.thrallwars.statistics.entity.RconSqlCountResult;
 import com.thrallwars.statistics.util.StatisticsUtils;
@@ -12,41 +13,50 @@ import org.springframework.util.StreamUtils;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @Log4j2
-public class PlayerWalletService {
+public class PlayerWalletRconRepo {
 
     /**
      * Limitation of RCON. We need to limit result sets
      */
     private static final Integer MAX_ROWS_PER_RESULT = 100;
 
-    // What's up with these hex(substr()) operations?
-    // a property is, in essence, a serialized game object
-    // Through a complex process (try and error...), I found out which bytes to read to get
-    // the integer values from the blob
-    // To transmit them over rcon, they are converted into a hex string.
-
     public List<PlayerWallet> queryWallets(RconSocket rconSocket) {
         int size = queryCount(rconSocket);
+        OffsetDateTime timestamp = OffsetDateTime.now();
         List<PlayerWallet> result = new ArrayList<>();
-        for (int currentOffset = 0; currentOffset <= size; currentOffset += 100) {
-            Collection<PlayerWallet> playerWallets = queryPage(rconSocket, currentOffset, 100)
+        // Gather data in pages first
+        for (int currentOffset = 0; currentOffset <= size; currentOffset += MAX_ROWS_PER_RESULT) {
+            Collection<PlayerWallet> playerWallets = queryPage(rconSocket, currentOffset, MAX_ROWS_PER_RESULT)
                     .stream()
-                    .map(this::applyWalletValues)
+                    .map(this::toPlayerWallet)
                     .collect(Collectors.toList());
             result.addAll(playerWallets);
         }
+        // Apply current timestamp and target
+        result.forEach(playerWallet -> {
+            playerWallet.setTimestamp(Instant.now());
+            playerWallet.setServer(rconSocket.getServerName());
+        });
         return result;
     }
 
-    private PlayerWallet applyWalletValues(PlayerWallet playerWallet) {
-        playerWallet.setBronze(parseHex(playerWallet.getBronzeHex()));
-        playerWallet.setSilver(parseHex(playerWallet.getSilverHex()));
-        playerWallet.setGold(parseHex(playerWallet.getGoldHex()));
+    private PlayerWallet toPlayerWallet(PlayerWalletDTO dto) {
+        PlayerWallet playerWallet = new PlayerWallet();
+        playerWallet.setBronze(parseHex(dto.getBronzeHex()));
+        playerWallet.setSilver(parseHex(dto.getSilverHex()));
+        playerWallet.setGold(parseHex(dto.getGoldHex()));
+        playerWallet.setCharName(dto.getCharName());
+        playerWallet.setClanId(dto.getClanId());
+        playerWallet.setRawBronzeValue(dto.getBronzeHex());
+        playerWallet.setRawSilverValue(dto.getSilverHex());
+        playerWallet.setRawGoldValue(dto.getGoldHex());
         return playerWallet;
     }
 
@@ -54,14 +64,14 @@ public class PlayerWalletService {
         return StatisticsUtils.parseLittleEndianHex(hex);
     }
 
-    private Collection<PlayerWallet> queryPage(RconSocket rconSocket, Integer offset, Integer limit) {
+    private Collection<PlayerWalletDTO> queryPage(RconSocket rconSocket, Integer offset, Integer limit) {
         String query = loadRconSqlQuery("sql/query_pippi_wallets_paged.sql");
         String finalQuery = query.replace(":offset", offset.toString())
                 .replace(":limit", limit.toString());
         log.debug("Player Wallet - page query: {}", finalQuery);
         String response = rconSocket.executeInConnection(finalQuery);
         log.debug("Player Wallet - page query response: {}", response);
-        List<PlayerWallet> result = new RconSqlParser<>(PlayerWallet.class)
+        List<PlayerWalletDTO> result = new RconSqlParser<>(PlayerWalletDTO.class)
                 .parseMany(response);
         log.debug("Player Wallet - page query result: {}", result);
         return result;
@@ -82,10 +92,13 @@ public class PlayerWalletService {
     private String loadRconSqlQuery(String name) {
         InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream(name);
         String rawQuery = StreamUtils.copyToString(resourceAsStream, StandardCharsets.UTF_8);
-        // Make query a oneliner
+        // Need to remove linesbreaks apparently. No idea why it's necessary
         String sql = Arrays.stream(rawQuery.split("\n"))
                 .map(String::trim)
+                // Remove comment lines, rcon sql can't handle them.
+                .filter(s -> !s.startsWith("--"))
                 .collect(Collectors.joining(" "));
+        // wrap statement in sql "<statement>"
         return "sql \"" + sql + "\"";
     }
 }

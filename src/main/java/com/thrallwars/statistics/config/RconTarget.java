@@ -8,4 +8,5 @@ public class RconTarget {
     private String host;
     private Integer port;
     private String password;
+    private boolean gather;
 }

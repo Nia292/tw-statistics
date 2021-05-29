@@ -1,3 +1,8 @@
+-- What's up with these hex(substr()) operations?
+-- a property is, in essence, a serialized game object
+-- Through a complex process (try and error...), I found out which bytes to read to get
+-- the integer values from the blob
+-- To transmit them over rcon, they are converted into a hex string.
 select char.id,
        char.char_name,
        char.guild,

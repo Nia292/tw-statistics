@@ -8,4 +8,9 @@ thrallwars:
       host: "185.55.77.88"
       port: 25576
       password: secret
-
+spring:
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: statistics

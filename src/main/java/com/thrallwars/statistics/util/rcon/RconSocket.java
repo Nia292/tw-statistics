@@ -1,5 +1,7 @@
 package com.thrallwars.statistics.util.rcon;
 
+import com.thrallwars.statistics.config.RconTarget;
+import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 
@@ -22,15 +24,25 @@ public class RconSocket {
     private final String server;
     private final int port;
     private final String password;
+    @Getter
+    private final String serverName;
 
     private Socket socket;
     private DataOutputStream tcpOut;
     private DataInputStream tcpIn;
 
-    public RconSocket(String server, int port, String password) {
+    public RconSocket(String server, int port, String password, String serverName) {
         this.server = server;
         this.port = port;
         this.password = password;
+        this.serverName = serverName;
+    }
+
+    public RconSocket(RconTarget rconTarget) {
+        this.server = rconTarget.getHost();
+        this.port = rconTarget.getPort();
+        this.password = rconTarget.getPassword();
+        this.serverName = rconTarget.getName();
     }
 
 

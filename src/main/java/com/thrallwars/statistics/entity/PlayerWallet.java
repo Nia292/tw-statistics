@@ -1,28 +1,56 @@
 package com.thrallwars.statistics.entity;
 
-import com.thrallwars.statistics.util.rconsql.RconSqlColumn;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+
+import java.time.Instant;
 
 @Builder
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class PlayerWallet {
-    @RconSqlColumn(columnIndex = 1)
-    private String charName;
-    @RconSqlColumn(columnIndex = 2)
+    /**
+     * Unique record ID assigned by mongo
+     */
+    @Id
+    private String id;
+    /**
+     * Clan ID simply taken from the player table
+     */
     private String clanId;
-    @RconSqlColumn(columnIndex = 3)
-    private String goldHex;
-    @RconSqlColumn(columnIndex = 4)
-    private String silverHex;
-    @RconSqlColumn(columnIndex = 5)
-    private String bronzeHex;
-
+    /**
+     * char_name from the player table
+     */
+    private String charName;
+    /**
+     * Converted gold value
+     */
     private Integer gold;
+    /**
+     * Hexadecimal gold string
+     */
+    private String rawGoldValue;
+    /**
+     * Converted silver value
+     */
     private Integer silver;
+
+    private String rawSilverValue;
+    /**
+     * Converted bronze value
+     */
     private Integer bronze;
+    private String rawBronzeValue;
+    /**
+     * the server this information was taken from, as specified in {@link com.thrallwars.statistics.config.RconTarget#name}
+     */
+    private String server;
+    /**
+     * Timestamp this record was taken on. In UTC time.
+     */
+    private Instant timestamp;
 }

@@ -3,10 +3,8 @@ package com.thrallwars.statistics.controller;
 import com.thrallwars.statistics.entity.OnlinePlayers;
 import com.thrallwars.statistics.entity.PlayerWallet;
 import com.thrallwars.statistics.service.RconService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import com.thrallwars.statistics.service.StatisticsService;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -15,9 +13,11 @@ import java.util.List;
 public class StatisticsRestController {
 
     private final RconService rconService;
+    private final StatisticsService statisticsService;
 
-    public StatisticsRestController(RconService rconService) {
+    public StatisticsRestController(RconService rconService, StatisticsService statisticsService) {
         this.rconService = rconService;
+        this.statisticsService = statisticsService;
     }
 
     @GetMapping("online-players")
@@ -33,6 +33,11 @@ public class StatisticsRestController {
     @GetMapping("player-wallet")
     List<PlayerWallet> getPlayerWallets(@RequestParam(name = "target", required = true) String target) {
         return rconService.getPlayerWallets(target);
+    }
+
+    @PostMapping("player-wallet")
+    void gatherPlayerWalletData() {
+        statisticsService.gatherPlayerWalletData();
     }
 
     @GetMapping("plain/player-wallet")

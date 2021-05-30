@@ -1,35 +1,42 @@
 package com.thrallwars.statistics.repo;
 
+import com.thrallwars.statistics.config.RconTarget;
 import com.thrallwars.statistics.dto.PlayerWalletDTO;
 import com.thrallwars.statistics.entity.PlayerWallet;
 import com.thrallwars.statistics.entity.RconSqlCountResult;
 import com.thrallwars.statistics.util.StatisticsUtils;
+import com.thrallwars.statistics.util.rcon.RconFactory;
 import com.thrallwars.statistics.util.rcon.RconSocket;
 import com.thrallwars.statistics.util.rconsql.RconSqlParser;
-import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StreamUtils;
 
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.thrallwars.statistics.util.rconsql.RconSqlUtil.loadRconSqlQuery;
+
 @Service
 @Log4j2
 public class PlayerWalletRconRepo {
+
+    private final RconFactory rconFactory;
 
     /**
      * Limitation of RCON. We need to limit result sets
      */
     private static final Integer MAX_ROWS_PER_RESULT = 100;
 
-    public List<PlayerWallet> queryWallets(RconSocket rconSocket) {
+    public PlayerWalletRconRepo(RconFactory rconFactory) {
+        this.rconFactory = rconFactory;
+    }
+
+    public List<PlayerWallet> queryWallets(RconTarget rconTarget) {
+        RconSocket rconSocket = rconFactory.getSocket(rconTarget);
         int size = queryCount(rconSocket);
-        OffsetDateTime timestamp = OffsetDateTime.now();
+        Instant timestamp = Instant.now();
         List<PlayerWallet> result = new ArrayList<>();
         // Gather data in pages first
         for (int currentOffset = 0; currentOffset <= size; currentOffset += MAX_ROWS_PER_RESULT) {
@@ -41,7 +48,7 @@ public class PlayerWalletRconRepo {
         }
         // Apply current timestamp and target
         result.forEach(playerWallet -> {
-            playerWallet.setTimestamp(Instant.now());
+            playerWallet.setTimestamp(timestamp);
             playerWallet.setServer(rconSocket.getServerName());
         });
         return result;
@@ -88,17 +95,4 @@ public class PlayerWalletRconRepo {
         return Integer.parseInt(countResult.getCount());
     }
 
-    @SneakyThrows
-    private String loadRconSqlQuery(String name) {
-        InputStream resourceAsStream = this.getClass().getClassLoader().getResourceAsStream(name);
-        String rawQuery = StreamUtils.copyToString(resourceAsStream, StandardCharsets.UTF_8);
-        // Need to remove linesbreaks apparently. No idea why it's necessary
-        String sql = Arrays.stream(rawQuery.split("\n"))
-                .map(String::trim)
-                // Remove comment lines, rcon sql can't handle them.
-                .filter(s -> !s.startsWith("--"))
-                .collect(Collectors.joining(" "));
-        // wrap statement in sql "<statement>"
-        return "sql \"" + sql + "\"";
-    }
 }

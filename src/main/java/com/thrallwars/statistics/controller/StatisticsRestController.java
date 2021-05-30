@@ -1,5 +1,7 @@
 package com.thrallwars.statistics.controller;
 
+import com.thrallwars.statistics.entity.ClanBankerWallet;
+import com.thrallwars.statistics.entity.PlayerBankerWallet;
 import com.thrallwars.statistics.entity.OnlinePlayers;
 import com.thrallwars.statistics.entity.PlayerWallet;
 import com.thrallwars.statistics.service.RconService;
@@ -21,17 +23,17 @@ public class StatisticsRestController {
     }
 
     @GetMapping("online-players")
-    OnlinePlayers getOnlinePlayers(@RequestParam(name = "target", required = true) String target) {
+    OnlinePlayers getOnlinePlayers(@RequestParam(name = "target") String target) {
         return rconService.getOnlinePlayers(target);
     }
 
     @GetMapping("plain/online-players")
-    String getOnlinePlayersPlain(@RequestParam(name = "target", required = true) String target) {
+    String getOnlinePlayersPlain(@RequestParam(name = "target") String target) {
         return rconService.getOnlinePlayersPlain(target);
     }
 
     @GetMapping("player-wallet")
-    List<PlayerWallet> getPlayerWallets(@RequestParam(name = "target", required = true) String target) {
+    List<PlayerWallet> getPlayerWallets(@RequestParam(name = "target") String target) {
         return rconService.getPlayerWallets(target);
     }
 
@@ -40,9 +42,23 @@ public class StatisticsRestController {
         statisticsService.gatherPlayerWalletData();
     }
 
-    @GetMapping("plain/player-wallet")
-    String getPlayerWalletsPlain(@RequestParam(name = "target", required = true) String target) {
-//        return rconService.getPippiGoldPlain(target);
-        return "";
+    @PostMapping("player-banker-wallet")
+    void gatherPlayerBankerWalletData() {
+        statisticsService.gatherPlayerBankerData();
+    }
+
+    @PostMapping("clan-banker-wallet")
+    void gatherClanBankerWalletData() {
+        statisticsService.gatherClanBankerData();
+    }
+
+    @GetMapping("player-banker-wallet")
+    List<PlayerBankerWallet> getBankerPlayerWallets(@RequestParam(name = "target") String target) {
+        return rconService.getBankerPlayerWallets(target);
+    }
+
+    @GetMapping("clan-banker-wallet")
+    List<ClanBankerWallet> getBankerClanWallets(@RequestParam(name = "target") String target) {
+        return rconService.getBankerClanWallets(target);
     }
 }

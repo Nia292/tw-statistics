@@ -2,8 +2,11 @@ package com.thrallwars.statistics.service;
 
 import com.thrallwars.statistics.config.RconTarget;
 import com.thrallwars.statistics.config.ServiceConfig;
+import com.thrallwars.statistics.dto.PlayerDTO;
 import com.thrallwars.statistics.entity.*;
 import com.thrallwars.statistics.repo.BankerWalletRconRepo;
+import com.thrallwars.statistics.repo.Player;
+import com.thrallwars.statistics.repo.PlayerRconRepo;
 import com.thrallwars.statistics.repo.PlayerWalletRconRepo;
 import com.thrallwars.statistics.util.rcon.RconFactory;
 import com.thrallwars.statistics.util.rcon.RconSocket;
@@ -20,12 +23,14 @@ public class RconService {
     private final ServiceConfig serviceConfig;
     private final PlayerWalletRconRepo playerWalletRconRepo;
     private final BankerWalletRconRepo bankerWalletRconRepo;
+    private final PlayerRconRepo playerRconRepo;
 
-    public RconService(RconFactory rconFactory, ServiceConfig serviceConfig, PlayerWalletRconRepo playerWalletRconRepo, BankerWalletRconRepo bankerWalletRconRepo) {
+    public RconService(RconFactory rconFactory, ServiceConfig serviceConfig, PlayerWalletRconRepo playerWalletRconRepo, BankerWalletRconRepo bankerWalletRconRepo, PlayerRconRepo playerRconRepo) {
         this.rconFactory = rconFactory;
         this.serviceConfig = serviceConfig;
         this.playerWalletRconRepo = playerWalletRconRepo;
         this.bankerWalletRconRepo = bankerWalletRconRepo;
+        this.playerRconRepo = playerRconRepo;
     }
 
     public OnlinePlayers getOnlinePlayers(String target) {
@@ -56,5 +61,10 @@ public class RconService {
     public List<ClanBankerWallet> getBankerClanWallets(String target) {
         RconTarget rconTarget = serviceConfig.findTarget(target);
         return bankerWalletRconRepo.getClanBankerWallets(rconTarget);
+    }
+
+    public List<Player> getAllPlayers(String target) {
+        RconTarget rconTarget = serviceConfig.findTarget(target);
+        return playerRconRepo.getAllPlayers(rconTarget);
     }
 }

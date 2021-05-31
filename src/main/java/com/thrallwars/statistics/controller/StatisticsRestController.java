@@ -1,9 +1,11 @@
 package com.thrallwars.statistics.controller;
 
+import com.thrallwars.statistics.dto.DataDump;
 import com.thrallwars.statistics.entity.ClanBankerWallet;
-import com.thrallwars.statistics.entity.PlayerBankerWallet;
 import com.thrallwars.statistics.entity.OnlinePlayers;
+import com.thrallwars.statistics.entity.PlayerBankerWallet;
 import com.thrallwars.statistics.entity.PlayerWallet;
+import com.thrallwars.statistics.repo.Player;
 import com.thrallwars.statistics.service.RconService;
 import com.thrallwars.statistics.service.StatisticsService;
 import org.springframework.web.bind.annotation.*;
@@ -60,5 +62,20 @@ public class StatisticsRestController {
     @GetMapping("clan-banker-wallet")
     List<ClanBankerWallet> getBankerClanWallets(@RequestParam(name = "target") String target) {
         return rconService.getBankerClanWallets(target);
+    }
+
+    @GetMapping("players")
+    List<Player> getAllPlayers(@RequestParam(name = "target") String target) {
+        return rconService.getAllPlayers(target);
+    }
+
+    @PostMapping("players")
+    void gatherPlayers() {
+        statisticsService.gatherPlayerData();
+    }
+
+    @GetMapping("data-dump")
+    DataDump getDataDump() {
+        return statisticsService.getDataDump();
     }
 }

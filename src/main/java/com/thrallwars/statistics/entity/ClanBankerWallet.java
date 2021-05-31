@@ -22,4 +22,5 @@ public class ClanBankerWallet {
     private Integer silver;
     private Integer bronze;
     private Instant timestampUTC;
+    private String server;
 }

@@ -11,7 +11,6 @@ import com.thrallwars.statistics.util.rconsql.RconSqlParser;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
-import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
 import java.util.function.Consumer;
@@ -40,7 +39,7 @@ public class BankerWalletRconRepo {
                 .parseMany(response)
                 .stream()
                 .map(this::toBankerPlayerWallet)
-                .peek(applyTimestampPlayerBanker(timestamp))
+                .peek(applyMetadtaToPlayerBanker(timestamp, rconTarget.getName()))
                 .collect(Collectors.toList());
     }
 
@@ -55,16 +54,22 @@ public class BankerWalletRconRepo {
                 .parseMany(response)
                 .stream()
                 .map(this::toBankerClanWallet)
-                .peek(applyTimestampClanBanker(timestamp))
+                .peek(applyMetadataToClanBanker(timestamp, rconTarget.getName()))
                 .collect(Collectors.toList());
     }
 
-    private Consumer<PlayerBankerWallet> applyTimestampPlayerBanker(Instant timestampUTC) {
-        return playerBankerWallet -> playerBankerWallet.setTimestampUTC(timestampUTC);
+    private Consumer<PlayerBankerWallet> applyMetadtaToPlayerBanker(Instant timestampUTC, String server) {
+        return playerBankerWallet -> {
+            playerBankerWallet.setTimestampUTC(timestampUTC);
+            playerBankerWallet.setServer(server);
+        };
     }
 
-    private Consumer<ClanBankerWallet> applyTimestampClanBanker(Instant timestampUTC) {
-        return playerBankerWallet -> playerBankerWallet.setTimestampUTC(timestampUTC);
+    private Consumer<ClanBankerWallet> applyMetadataToClanBanker(Instant timestampUTC, String server) {
+        return clanBankerWallet -> {
+            clanBankerWallet.setTimestampUTC(timestampUTC);
+            clanBankerWallet.setServer(server);
+        };
     }
 
     private PlayerBankerWallet toBankerPlayerWallet(PlayerBankerWalletDTO playerBankerWalletDTO) {

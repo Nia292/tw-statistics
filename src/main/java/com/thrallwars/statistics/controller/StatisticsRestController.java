@@ -7,9 +7,10 @@ import com.thrallwars.statistics.entity.PlayerBankerWallet;
 import com.thrallwars.statistics.entity.PlayerWallet;
 import com.thrallwars.statistics.repo.Player;
 import com.thrallwars.statistics.service.RconService;
-import com.thrallwars.statistics.service.StatisticsService;
+import com.thrallwars.statistics.service.WalletStatisticsService;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
 import java.util.List;
 
 @RestController
@@ -17,11 +18,11 @@ import java.util.List;
 public class StatisticsRestController {
 
     private final RconService rconService;
-    private final StatisticsService statisticsService;
+    private final WalletStatisticsService walletStatisticsService;
 
-    public StatisticsRestController(RconService rconService, StatisticsService statisticsService) {
+    public StatisticsRestController(RconService rconService, WalletStatisticsService walletStatisticsService) {
         this.rconService = rconService;
-        this.statisticsService = statisticsService;
+        this.walletStatisticsService = walletStatisticsService;
     }
 
     @GetMapping("online-players")
@@ -39,21 +40,6 @@ public class StatisticsRestController {
         return rconService.getPlayerWallets(target);
     }
 
-    @PostMapping("player-wallet")
-    void gatherPlayerWalletData() {
-        statisticsService.gatherPlayerWalletData();
-    }
-
-    @PostMapping("player-banker-wallet")
-    void gatherPlayerBankerWalletData() {
-        statisticsService.gatherPlayerBankerData();
-    }
-
-    @PostMapping("clan-banker-wallet")
-    void gatherClanBankerWalletData() {
-        statisticsService.gatherClanBankerData();
-    }
-
     @GetMapping("player-banker-wallet")
     List<PlayerBankerWallet> getBankerPlayerWallets(@RequestParam(name = "target") String target) {
         return rconService.getBankerPlayerWallets(target);
@@ -69,13 +55,33 @@ public class StatisticsRestController {
         return rconService.getAllPlayers(target);
     }
 
-    @PostMapping("players")
-    void gatherPlayers() {
-        statisticsService.gatherPlayerData();
-    }
-
     @GetMapping("data-dump")
     DataDump getDataDump() {
-        return statisticsService.getDataDump();
+        return walletStatisticsService.getDataDump();
     }
+
+    @PostMapping("data-dump")
+    void createDataDump() {
+        walletStatisticsService.createDataDump();
+    }
+
+    @PostMapping("player-wallet")
+    void gatherPlayerWalletData() {
+        walletStatisticsService.gatherPlayerWalletData(Instant.now());
+    }
+
+    @PostMapping("player-banker-wallet")
+    void gatherPlayerBankerWalletData() {
+        walletStatisticsService.gatherPlayerBankerData(Instant.now());
+    }
+
+    @PostMapping("clan-banker-wallet")
+    void gatherClanBankerWalletData() {
+        walletStatisticsService.gatherClanBankerData(Instant.now());
+    }
+    @PostMapping("players")
+    void gatherPlayers() {
+        walletStatisticsService.gatherPlayerData(Instant.now());
+    }
+
 }

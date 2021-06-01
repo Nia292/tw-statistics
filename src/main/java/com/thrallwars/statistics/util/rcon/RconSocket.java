@@ -51,16 +51,16 @@ public class RconSocket {
         socket = new Socket(server, port);
         tcpOut = new DataOutputStream(socket.getOutputStream());
         tcpIn = new DataInputStream(socket.getInputStream());
-        log.info("Sending login RCON");
+        log.debug("Sending login RCON");
         List<RConPacket> responses = executeRcon(password, 3);
         // Expect exactly one response for auth request
         RConPacket response = responses.iterator().next();
-        log.info("Login RCON: {}", response.message);
-        log.info("Login RCON: id {} and type {}", response.id, response.type);
+        log.debug("Login RCON: {}", response.message);
+        log.debug("Login RCON: id {} and type {}", response.id, response.type);
         if (response.id == -1) {
             throw new InvalidRconPackageException("Wrong password");
         }
-        log.info("Established connection to {}:{}", server, port);
+        log.debug("Established connection to {}:{}", server, port);
     }
 
     @SneakyThrows
@@ -75,13 +75,13 @@ public class RconSocket {
         // Read the header
         byte[] size = new byte[4];
         tcpIn.readFully(size, 0, 4);
-        log.info("Size header bytes {}", size);
+        log.debug("Size header bytes {}", size);
         int packageSize = ByteBuffer.wrap(size).order(ByteOrder.LITTLE_ENDIAN).getInt();
-        log.info("Read package of size {}", packageSize);
+        log.debug("Read package of size {}", packageSize);
         byte [] remainingBytes = new byte[packageSize];
         tcpIn.readFully(remainingBytes, 0, packageSize);
-        log.info("RCon payload size {}", remainingBytes.length);
-        log.info("Total package size {}", (remainingBytes.length + 4));
+        log.debug("RCon payload size {}", remainingBytes.length);
+        log.debug("Total package size {}", (remainingBytes.length + 4));
         byte[] fullPackage = ByteBuffer.allocate((remainingBytes.length + 4))
                 .put(size)
                 .put(remainingBytes)

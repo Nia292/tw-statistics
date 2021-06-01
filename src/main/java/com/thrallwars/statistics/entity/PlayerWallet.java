@@ -52,5 +52,5 @@ public class PlayerWallet {
     /**
      * Timestamp this record was taken on. In UTC time.
      */
-    private Instant timestamp;
+    private Instant timestampUTC;
 }

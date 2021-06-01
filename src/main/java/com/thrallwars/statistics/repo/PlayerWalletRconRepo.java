@@ -48,7 +48,7 @@ public class PlayerWalletRconRepo {
         }
         // Apply current timestamp and target
         result.forEach(playerWallet -> {
-            playerWallet.setTimestamp(timestamp);
+            playerWallet.setTimestampUTC(timestamp);
             playerWallet.setServer(rconSocket.getServerName());
         });
         return result;

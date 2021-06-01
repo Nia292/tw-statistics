@@ -28,11 +28,11 @@ public class RConPacket {
         if (bytes.length < 4) {
             throw new InvalidRconPackageException("No size field present in rcon package");
         }
-        log.info("Reading RCON package of size {}", bytes.length);
+        log.debug("Reading RCON package of size {}", bytes.length);
         // Read size of the RCON package
         var bufferSize = bytes.length;
         var packageSize = ByteBuffer.wrap(bytes, 0, 4).order(ByteOrder.LITTLE_ENDIAN).getInt();
-        log.info("Header specifies RCON package size of {}", packageSize);
+        log.debug("Header specifies RCON package size of {}", packageSize);
         if (packageSize != (bufferSize - 4)) {
             throw new InvalidRconPackageException("Package size specified was " + packageSize + " but got package of actual size " + (bufferSize - 4));
         }

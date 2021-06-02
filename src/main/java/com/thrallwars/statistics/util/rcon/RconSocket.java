@@ -47,7 +47,7 @@ public class RconSocket {
 
 
     @SneakyThrows
-    private void connect() {
+    public void connect() {
         socket = new Socket(server, port);
         tcpOut = new DataOutputStream(socket.getOutputStream());
         tcpIn = new DataInputStream(socket.getInputStream());
@@ -64,7 +64,7 @@ public class RconSocket {
     }
 
     @SneakyThrows
-    private void disconnect() {
+    public void disconnect() {
         tcpIn.close();
         tcpOut.close();
         socket.close();
@@ -108,12 +108,10 @@ public class RconSocket {
     }
 
     public String executeInConnection(String request) {
-        connect();
         String response = executeRcon(request, 2)
                 .stream()
                 .map(rConPacket -> rConPacket.message)
                 .collect(Collectors.joining());
-        disconnect();
         return response;
     }
 }

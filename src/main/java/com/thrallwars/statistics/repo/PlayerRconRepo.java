@@ -2,22 +2,17 @@ package com.thrallwars.statistics.repo;
 
 import com.thrallwars.statistics.config.RconTarget;
 import com.thrallwars.statistics.dto.PlayerDTO;
-import com.thrallwars.statistics.entity.PlayerWallet;
 import com.thrallwars.statistics.entity.RconSqlCountResult;
-import com.thrallwars.statistics.util.rcon.RconFactory;
-import com.thrallwars.statistics.util.rcon.RconSocket;
+import com.thrallwars.statistics.util.rcon.RconConnectionPool;
 import com.thrallwars.statistics.util.rconsql.RconSqlParser;
 import com.thrallwars.statistics.util.rconsql.RconSqlUtil;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
-import java.sql.Time;
-import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -25,7 +20,7 @@ import java.util.stream.Collectors;
 @Log4j2
 public class PlayerRconRepo {
 
-    private final RconFactory rconFactory;
+    private final RconConnectionPool rconConnectionPool;
 
     /**
      * Limitation of RCON. We need to limit result sets
@@ -33,18 +28,17 @@ public class PlayerRconRepo {
     private static final Integer MAX_ROWS_PER_RESULT = 100;
 
 
-    public PlayerRconRepo(RconFactory rconFactory) {
-        this.rconFactory = rconFactory;
+    public PlayerRconRepo(RconConnectionPool rconConnectionPool) {
+        this.rconConnectionPool = rconConnectionPool;
     }
 
     public List<Player> getAllPlayers(RconTarget rconTarget) {
         Instant timestamp = Instant.now();
-        RconSocket socket = rconFactory.getSocket(rconTarget);
-        int size = countQuery(socket);
+        int size = countQuery(rconTarget);
         List<PlayerDTO> result = new ArrayList<>();
         // Gather data in pages first
         for (int currentOffset = 0; currentOffset <= size; currentOffset += MAX_ROWS_PER_RESULT) {
-            Collection<PlayerDTO> players = queryPage(socket, currentOffset, MAX_ROWS_PER_RESULT)
+            Collection<PlayerDTO> players = queryPage(rconTarget, currentOffset, MAX_ROWS_PER_RESULT)
                     .stream()
                     .collect(Collectors.toList());
             result.addAll(players);
@@ -67,21 +61,21 @@ public class PlayerRconRepo {
                 .build();
     }
 
-    private List<PlayerDTO> queryPage(RconSocket socket, Integer offset, Integer limit) {
+    private List<PlayerDTO> queryPage(RconTarget rconTarget, Integer offset, Integer limit) {
         String query = RconSqlUtil.loadRconSqlQuery("sql/query_get_players.sql");
         query = query.replace(":offset", offset.toString())
                 .replace(":limit", limit.toString());
         log.debug("All players - query: {}", query);
-        String response = socket.executeInConnection(query);
+        String response = rconConnectionPool.executePooled(rconTarget, query);
         log.debug("All players - response: {}", response);
         return new RconSqlParser<>(PlayerDTO.class)
                 .parseMany(response);
     }
 
-    private int countQuery(RconSocket socket) {
+    private int countQuery(RconTarget rconTarget) {
         String query = RconSqlUtil.loadRconSqlQuery("sql/count_get_players.sql");
         log.debug("Count players - query: {}", query);
-        String response = socket.executeInConnection(query);
+        String response = rconConnectionPool.executePooled(rconTarget, query);
         log.debug("Count players - response: {}", response);
         String countString = new RconSqlParser<>(RconSqlCountResult.class)
                 .parseOne(response)

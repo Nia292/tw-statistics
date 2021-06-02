@@ -6,7 +6,7 @@ import com.thrallwars.statistics.dto.PlayerBankerWalletDTO;
 import com.thrallwars.statistics.entity.ClanBankerWallet;
 import com.thrallwars.statistics.entity.PlayerBankerWallet;
 import com.thrallwars.statistics.util.StatisticsUtils;
-import com.thrallwars.statistics.util.rcon.RconFactory;
+import com.thrallwars.statistics.util.rcon.RconConnectionPool;
 import com.thrallwars.statistics.util.rconsql.RconSqlParser;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
@@ -22,18 +22,17 @@ import static com.thrallwars.statistics.util.rconsql.RconSqlUtil.loadRconSqlQuer
 @Log4j2
 public class BankerWalletRconRepo {
 
-    private final RconFactory rconFactory;
+    private final RconConnectionPool rconConnectionPool;
 
-    public BankerWalletRconRepo(RconFactory rconFactory) {
-        this.rconFactory = rconFactory;
+    public BankerWalletRconRepo(RconConnectionPool rconConnectionPool) {
+        this.rconConnectionPool = rconConnectionPool;
     }
 
     public List<PlayerBankerWallet> getPlayerBankerWallets(RconTarget rconTarget) {
         Instant timestamp = Instant.now();
         String query = loadRconSqlQuery("sql/query_pippi_player_banker_wallets.sql");
         log.debug("Banker Player Wallet - query: {}", query);
-        String response = rconFactory.getSocket(rconTarget)
-                .executeInConnection(query);
+        String response = rconConnectionPool.executePooled(rconTarget, query);
         log.debug("Banker Player Wallet - response: {}", response);
         return new RconSqlParser<>(PlayerBankerWalletDTO.class)
                 .parseMany(response)
@@ -47,8 +46,7 @@ public class BankerWalletRconRepo {
         Instant timestamp = Instant.now();
         String query = loadRconSqlQuery("sql/query_pippi_clan_banker_wallets.sql");
         log.debug("Banker Clan Wallet - query: {}", query);
-        String response = rconFactory.getSocket(rconTarget)
-                .executeInConnection(query);
+        String response = rconConnectionPool.executePooled(rconTarget, query);
         log.debug("Banker Clan Wallet - response: {}", response);
         return new RconSqlParser<>(ClanBankerWalletDTO.class)
                 .parseMany(response)

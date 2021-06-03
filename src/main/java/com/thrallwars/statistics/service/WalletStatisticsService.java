@@ -11,11 +11,11 @@ import com.thrallwars.statistics.repo.*;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
-import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 @Service
 @Log4j2
@@ -30,6 +30,7 @@ public class WalletStatisticsService {
     private final PlayerRconRepo playerRconRepo;
     private final PlayerRepo playerRepo;
     private final GatheringErrorRepo gatheringErrorRepo;
+    private final DiscordWebhookService discordWebhookService;
 
     public WalletStatisticsService(PlayerWalletRconRepo playerWalletRconRepo,
                                    BankerWalletRconRepo bankerWalletRconRepo,
@@ -39,7 +40,7 @@ public class WalletStatisticsService {
                                    ServiceConfig serviceConfig,
                                    PlayerRconRepo playerRconRepo,
                                    GatheringErrorRepo gatheringErrorRepo,
-                                   PlayerRepo playerRepo) {
+                                   PlayerRepo playerRepo, DiscordWebhookService discordWebhookService) {
         this.playerWalletRconRepo = playerWalletRconRepo;
         this.bankerWalletRconRepo = bankerWalletRconRepo;
         this.playerWalletRepo = playerWalletRepo;
@@ -49,6 +50,7 @@ public class WalletStatisticsService {
         this.playerRconRepo = playerRconRepo;
         this.playerRepo = playerRepo;
         this.gatheringErrorRepo = gatheringErrorRepo;
+        this.discordWebhookService = discordWebhookService;
     }
 
     public void gatherPlayerBankerData(Instant timestamp) {
@@ -124,6 +126,12 @@ public class WalletStatisticsService {
                     .timestampUTC(Instant.now())
                     .build();
             gatheringErrorRepo.save(error);
+            String discordMsg = "Failed " + operation + " @ " + Instant.now().toString() + " with error " + e.getMessage() + ". Stacktrace: ";
+            discordWebhookService.publishInfo(discordMsg);
+            var stacktrace = Arrays.stream(e.getStackTrace())
+                    .map(stackTraceElement -> stackTraceElement.toString())
+                    .collect(Collectors.joining("\n"));
+            discordWebhookService.publishInfo(stacktrace);
         }
     }
 }

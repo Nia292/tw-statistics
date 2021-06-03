@@ -1,7 +1,7 @@
 package com.thrallwars.statistics.util.rcon;
 
 import com.thrallwars.statistics.config.RconTarget;
-import lombok.Getter;
+import com.thrallwars.statistics.service.DiscordWebhookService;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -14,6 +14,12 @@ import java.util.concurrent.Semaphore;
 @Service
 @Log4j2
 public class RconConnectionPool {
+
+    private final DiscordWebhookService discordWebhookService;
+
+    public RconConnectionPool(DiscordWebhookService discordWebhookService) {
+        this.discordWebhookService = discordWebhookService;
+    }
 
     private static class SocketPoolEntry {
         private final String serverName;

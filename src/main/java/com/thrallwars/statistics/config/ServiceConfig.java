@@ -14,6 +14,8 @@ import java.util.List;
 @ConfigurationProperties(prefix = "thrallwars")
 public class ServiceConfig {
     private List<RconTarget> targets = new ArrayList<>();
+    private List<String> errorWebhookUrls = new ArrayList<>();
+    private List<String> infoWebhookUrls = new ArrayList<>();
 
     public RconTarget findTarget(String name) {
         return targets.stream()

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("statistics")
@@ -58,6 +59,22 @@ public class StatisticsRestController {
     @GetMapping("data-dump")
     DataDump getDataDump() {
         return walletStatisticsService.getDataDump();
+    }
+
+    @GetMapping("data-dump/player-wallet")
+    String getStoredPlayerWalletData() {
+        String header = "charname,clanid,bronze,silver,gold,server,timestamputc\n";
+        return header + getDataDump().getPlayerWallets()
+                .stream()
+                .map(playerWallet -> String.join(",", List.of(
+                        playerWallet.getCharName(),
+                        playerWallet.getClanId(),
+                        playerWallet.getBronze().toString(),
+                        playerWallet.getSilver().toString(),
+                        playerWallet.getGold().toString(),
+                        playerWallet.getServer(),
+                        ((Long) playerWallet.getTimestampUTC().getEpochSecond()).toString()
+                ))).collect(Collectors.joining("\n"));
     }
 
     @PostMapping("data-dump")

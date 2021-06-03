@@ -50,14 +50,12 @@ public class RconSqlParser<Entity> {
         });
         String[] rows = sqlString.split("\n");
         String header = rows[0];
-        String errorCodeString = header.substring(0, 4);
-        int errorCode = ByteBuffer.wrap(errorCodeString.getBytes(StandardCharsets.UTF_8))
-                .order(ByteOrder.LITTLE_ENDIAN)
-                .getInt();
-        log.debug("Parsed error code of query: {}", errorCode);
         // First row is header. We don't care about the header!
         String[] dataRows = Arrays.copyOfRange(rows, 1, rows.length);
         return Arrays.stream(dataRows)
+                // We only want rows starting with a "#<number>". There might be some newlines in a the response status.
+                // No idea where these are coming from
+                .filter(s -> s.startsWith("#"))
                 .map(this::entityFromRow)
                 .collect(Collectors.toList());
 

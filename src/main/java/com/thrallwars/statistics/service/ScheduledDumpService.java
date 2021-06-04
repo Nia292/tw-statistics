@@ -16,7 +16,10 @@ public class ScheduledDumpService {
         this.discordWebhookService = discordWebhookService;
     }
 
-    @Scheduled(cron = "0 0 6,22 * * *")
+    /**
+     * 01:00 and 13:00, times when the server is usually not so busy
+     */
+    @Scheduled(cron = "0 0 13,1 * * *")
     public void createDump() {
         this.discordWebhookService.publishInfo("Running scheduled data dump of all 3 servers @ "  + Instant.now().toString());
         walletStatisticsService.createDataDump();

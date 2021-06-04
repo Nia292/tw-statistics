@@ -57,7 +57,7 @@ public class RconSocket {
         RConPacket response = responses.iterator().next();
         log.debug("Login RCON: {}", response.message);
         log.debug("Login RCON: id {} and type {}", response.id, response.type);
-        if (response.id == -1) {
+        if (response.message.contains("Authentication failed")) {
             throw new InvalidRconPackageException("Wrong password");
         }
         log.debug("Established connection to {}:{}", server, port);

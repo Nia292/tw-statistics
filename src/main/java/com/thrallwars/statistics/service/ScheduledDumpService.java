@@ -8,11 +8,11 @@ import java.time.Instant;
 @Service
 public class ScheduledDumpService {
 
-    private final WalletStatisticsService walletStatisticsService;
+    private final StatisticsService statisticsService;
     private final DiscordWebhookService discordWebhookService;
 
-    public ScheduledDumpService(WalletStatisticsService walletStatisticsService, DiscordWebhookService discordWebhookService) {
-        this.walletStatisticsService = walletStatisticsService;
+    public ScheduledDumpService(StatisticsService statisticsService, DiscordWebhookService discordWebhookService) {
+        this.statisticsService = statisticsService;
         this.discordWebhookService = discordWebhookService;
     }
 
@@ -22,12 +22,12 @@ public class ScheduledDumpService {
     @Scheduled(cron = "0 0 13,1 * * *")
     public void createDump() {
         this.discordWebhookService.publishInfo("Running scheduled data dump of all 3 servers @ "  + Instant.now().toString());
-        walletStatisticsService.createDataDump();
+        statisticsService.createDataDump();
         this.discordWebhookService.publishInfo("Data dump completed @ " + Instant.now().toString());
     }
 
     @Scheduled(cron = "0 15 13,1 * * *")
     public void uploadDataDump() {
-        walletStatisticsService.uploadZippedDumpToDiscord();
+        statisticsService.uploadZippedDumpToDiscord();
     }
 }

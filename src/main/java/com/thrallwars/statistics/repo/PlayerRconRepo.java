@@ -38,9 +38,7 @@ public class PlayerRconRepo {
         List<PlayerDTO> result = new ArrayList<>();
         // Gather data in pages first
         for (int currentOffset = 0; currentOffset <= size; currentOffset += MAX_ROWS_PER_RESULT) {
-            Collection<PlayerDTO> players = queryPage(rconTarget, currentOffset, MAX_ROWS_PER_RESULT)
-                    .stream()
-                    .collect(Collectors.toList());
+            Collection<PlayerDTO> players = queryPage(rconTarget, currentOffset, MAX_ROWS_PER_RESULT);
             result.addAll(players);
         }
         return result.stream()

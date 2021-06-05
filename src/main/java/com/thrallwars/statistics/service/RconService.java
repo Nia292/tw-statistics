@@ -8,7 +8,6 @@ import com.thrallwars.statistics.repo.Player;
 import com.thrallwars.statistics.repo.PlayerRconRepo;
 import com.thrallwars.statistics.repo.PlayerWalletRconRepo;
 import com.thrallwars.statistics.util.rcon.RconConnectionPool;
-import com.thrallwars.statistics.util.rcon.RconSocket;
 import com.thrallwars.statistics.util.rconsql.RconSqlParser;
 import org.springframework.stereotype.Service;
 
@@ -32,25 +31,11 @@ public class RconService {
         this.playerRconRepo = playerRconRepo;
     }
 
-    public OnlinePlayers getOnlinePlayers(String target) {
-        String playerList = getOnlinePlayersPlain(target);
-        RconSqlParser<OnlinePlayer> parser = new RconSqlParser<>(OnlinePlayer.class);
-        List<OnlinePlayer> players = parser.parseMany(playerList);
-        return OnlinePlayers.builder()
-                .time(OffsetDateTime.now())
-                .players(players).build();
-    }
-
     public List<PlayerWallet> getPlayerWallets(String target) {
         RconTarget rconTarget = serviceConfig.findTarget(target);
         return playerWalletRconRepo.queryWallets(rconTarget);
     }
 
-    public String getOnlinePlayersPlain(String target) {
-        RconTarget rconTarget = serviceConfig.findTarget(target);
-        RconSocket socket = rconConnectionPool.getSocket(rconTarget);
-        return socket.executeInConnection("listplayers");
-    }
 
     public List<PlayerBankerWallet> getBankerPlayerWallets(String target) {
         RconTarget rconTarget = serviceConfig.findTarget(target);

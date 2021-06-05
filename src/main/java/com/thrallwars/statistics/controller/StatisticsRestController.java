@@ -2,12 +2,12 @@ package com.thrallwars.statistics.controller;
 
 import com.thrallwars.statistics.dto.DataDump;
 import com.thrallwars.statistics.entity.ClanBankerWallet;
-import com.thrallwars.statistics.entity.OnlinePlayers;
+import com.thrallwars.statistics.entity.OnlinePlayer;
 import com.thrallwars.statistics.entity.PlayerBankerWallet;
 import com.thrallwars.statistics.entity.PlayerWallet;
 import com.thrallwars.statistics.repo.Player;
 import com.thrallwars.statistics.service.RconService;
-import com.thrallwars.statistics.service.WalletStatisticsService;
+import com.thrallwars.statistics.service.StatisticsService;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
@@ -20,21 +20,11 @@ import java.util.stream.Collectors;
 public class StatisticsRestController {
 
     private final RconService rconService;
-    private final WalletStatisticsService walletStatisticsService;
+    private final StatisticsService statisticsService;
 
-    public StatisticsRestController(RconService rconService, WalletStatisticsService walletStatisticsService) {
+    public StatisticsRestController(RconService rconService, StatisticsService statisticsService) {
         this.rconService = rconService;
-        this.walletStatisticsService = walletStatisticsService;
-    }
-
-    @GetMapping("online-players")
-    OnlinePlayers getOnlinePlayers(@RequestParam(name = "target") String target) {
-        return rconService.getOnlinePlayers(target);
-    }
-
-    @GetMapping("plain/online-players")
-    String getOnlinePlayersPlain(@RequestParam(name = "target") String target) {
-        return rconService.getOnlinePlayersPlain(target);
+        this.statisticsService = statisticsService;
     }
 
     @GetMapping("player-wallet")
@@ -59,12 +49,12 @@ public class StatisticsRestController {
 
     @GetMapping("data-dump")
     DataDump getDataDump() {
-        return walletStatisticsService.getDataDump();
+        return statisticsService.getDataDump();
     }
 
     @PostMapping("data-dump/discord")
     public void uploadDataDump() {
-        walletStatisticsService.uploadZippedDumpToDiscord();
+        statisticsService.uploadZippedDumpToDiscord();
     }
 
     @GetMapping("data-dump/player-wallet")
@@ -85,26 +75,32 @@ public class StatisticsRestController {
 
     @PostMapping("data-dump")
     void createDataDump() {
-        walletStatisticsService.createDataDump();
+        statisticsService.createDataDump();
     }
 
     @PostMapping("player-wallet")
     void gatherPlayerWalletData() {
-        walletStatisticsService.gatherPlayerWalletData(Instant.now());
+        statisticsService.gatherPlayerWalletData(Instant.now());
     }
 
     @PostMapping("player-banker-wallet")
     void gatherPlayerBankerWalletData() {
-        walletStatisticsService.gatherPlayerBankerData(Instant.now());
+        statisticsService.gatherPlayerBankerData(Instant.now());
     }
 
     @PostMapping("clan-banker-wallet")
     void gatherClanBankerWalletData() {
-        walletStatisticsService.gatherClanBankerData(Instant.now());
+        statisticsService.gatherClanBankerData(Instant.now());
     }
+
     @PostMapping("players")
     void gatherPlayers() {
-        walletStatisticsService.gatherPlayerData(Instant.now());
+        statisticsService.gatherPlayerData(Instant.now());
+    }
+
+    @PostMapping("online-players")
+    void gatherOnlinePlayers() {
+        statisticsService.gatherOnlinePlayers(Instant.now());
     }
 
 }

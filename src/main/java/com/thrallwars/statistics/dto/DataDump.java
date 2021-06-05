@@ -16,4 +16,5 @@ public class DataDump {
     private List<PlayerBankerWallet> playerBankerWallets = new ArrayList<>();
     private List<ClanBankerWallet> clanBankerWallets = new ArrayList<>();
     private List<Player> players = new ArrayList<>();
+    private List<OnlinePlayer> onlinePlayers = new ArrayList<>();
 }

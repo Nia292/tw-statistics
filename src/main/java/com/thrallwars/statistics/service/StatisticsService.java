@@ -5,10 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.thrallwars.statistics.config.RconTarget;
 import com.thrallwars.statistics.config.ServiceConfig;
 import com.thrallwars.statistics.dto.DataDump;
-import com.thrallwars.statistics.entity.ClanBankerWallet;
-import com.thrallwars.statistics.entity.GatheringError;
-import com.thrallwars.statistics.entity.PlayerBankerWallet;
-import com.thrallwars.statistics.entity.PlayerWallet;
+import com.thrallwars.statistics.entity.*;
 import com.thrallwars.statistics.repo.*;
 import com.thrallwars.statistics.util.StatisticsUtils;
 import lombok.SneakyThrows;
@@ -26,7 +23,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Log4j2
-public class WalletStatisticsService {
+public class StatisticsService {
 
     private final PlayerWalletRconRepo playerWalletRconRepo;
     private final BankerWalletRconRepo bankerWalletRconRepo;
@@ -39,16 +36,22 @@ public class WalletStatisticsService {
     private final GatheringErrorRepo gatheringErrorRepo;
     private final DiscordWebhookService discordWebhookService;
     private final ObjectMapper objectMapper;
+    private final OnlinePlayersRconRepo onlinePlayersRconRepo;
+    private final OnlinePlayersRepo onlinePlayersRepo;
 
-    public WalletStatisticsService(PlayerWalletRconRepo playerWalletRconRepo,
-                                   BankerWalletRconRepo bankerWalletRconRepo,
-                                   PlayerWalletRepo playerWalletRepo,
-                                   PlayerBankerWalletRepo playerBankerWalletRepo,
-                                   ClanBankerWalletRepo clanBankerWalletRepo,
-                                   ServiceConfig serviceConfig,
-                                   PlayerRconRepo playerRconRepo,
-                                   GatheringErrorRepo gatheringErrorRepo,
-                                   PlayerRepo playerRepo, DiscordWebhookService discordWebhookService, ObjectMapper objectMapper) {
+    public StatisticsService(PlayerWalletRconRepo playerWalletRconRepo,
+                             BankerWalletRconRepo bankerWalletRconRepo,
+                             PlayerWalletRepo playerWalletRepo,
+                             PlayerBankerWalletRepo playerBankerWalletRepo,
+                             ClanBankerWalletRepo clanBankerWalletRepo,
+                             ServiceConfig serviceConfig,
+                             PlayerRconRepo playerRconRepo,
+                             GatheringErrorRepo gatheringErrorRepo,
+                             PlayerRepo playerRepo,
+                             DiscordWebhookService discordWebhookService,
+                             ObjectMapper objectMapper,
+                             OnlinePlayersRconRepo onlinePlayersRconRepo,
+                             OnlinePlayersRepo onlinePlayersRepo) {
         this.playerWalletRconRepo = playerWalletRconRepo;
         this.bankerWalletRconRepo = bankerWalletRconRepo;
         this.playerWalletRepo = playerWalletRepo;
@@ -60,6 +63,8 @@ public class WalletStatisticsService {
         this.gatheringErrorRepo = gatheringErrorRepo;
         this.discordWebhookService = discordWebhookService;
         this.objectMapper = objectMapper;
+        this.onlinePlayersRconRepo = onlinePlayersRconRepo;
+        this.onlinePlayersRepo = onlinePlayersRepo;
     }
 
     public void gatherPlayerBankerData(Instant timestamp) {
@@ -76,6 +81,10 @@ public class WalletStatisticsService {
 
     public void gatherPlayerData(Instant timestamp) {
         runForEachActiveTarget(rconTarget -> gatherPlayerDataForTarget(rconTarget, timestamp));
+    }
+
+    public void gatherOnlinePlayers(Instant timestamp) {
+        runForEachActiveTarget(rconTarget -> gatherOnlinePlayersForTarget(rconTarget, timestamp));
     }
 
     @SneakyThrows
@@ -95,6 +104,7 @@ public class WalletStatisticsService {
         runLoggingException(() ->  gatherClanBankerData(instant), "Gather Clan Banker Data");
         runLoggingException(() ->  gatherPlayerWalletData(instant), "Gather Player Wallet Data");
         runLoggingException(() ->  gatherPlayerData(instant), "Gather Player Data");
+        runLoggingException(() ->  gatherOnlinePlayers(instant), "Gather Online Players Data");
     }
 
     public DataDump getDataDump() {
@@ -103,6 +113,7 @@ public class WalletStatisticsService {
         dataDump.setPlayerBankerWallets(playerBankerWalletRepo.findAll());
         dataDump.setPlayerWallets(playerWalletRepo.findAll());
         dataDump.setPlayers(playerRepo.findAll());
+        dataDump.setOnlinePlayers(onlinePlayersRepo.findAll());
         return dataDump;
     }
 
@@ -134,6 +145,11 @@ public class WalletStatisticsService {
         List<Player> players = playerRconRepo.getAllPlayers(rconTarget);
         players.forEach(player -> player.setTimestampUTC(timestamp));
         playerRepo.saveAll(players);
+    }
+
+    private void gatherOnlinePlayersForTarget(RconTarget rconTarget, Instant timestamp) {
+        List<OnlinePlayer> onlinePlayers = onlinePlayersRconRepo.getOnlinePlayer(rconTarget);
+        onlinePlayers.forEach(onlinePlayer -> onlinePlayer.setTimestampUTC(timestamp));
     }
 
     private void runLoggingException(Runnable runnable, String operation) {

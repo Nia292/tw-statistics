@@ -25,4 +25,9 @@ public class ScheduledDumpService {
         walletStatisticsService.createDataDump();
         this.discordWebhookService.publishInfo("Data dump completed @ " + Instant.now().toString());
     }
+
+    @Scheduled(cron = "0 15 13,1 * * *")
+    public void uploadDataDump() {
+        walletStatisticsService.uploadZippedDumpToDiscord();
+    }
 }

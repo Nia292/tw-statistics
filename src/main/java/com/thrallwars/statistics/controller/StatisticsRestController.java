@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("statistics")
+@CrossOrigin(origins = "*")
 public class StatisticsRestController {
 
     private final RconService rconService;
@@ -59,6 +60,11 @@ public class StatisticsRestController {
     @GetMapping("data-dump")
     DataDump getDataDump() {
         return walletStatisticsService.getDataDump();
+    }
+
+    @PostMapping("data-dump/discord")
+    public void uploadDataDump() {
+        walletStatisticsService.uploadZippedDumpToDiscord();
     }
 
     @GetMapping("data-dump/player-wallet")

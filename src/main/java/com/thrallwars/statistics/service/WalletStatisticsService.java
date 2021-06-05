@@ -1,5 +1,7 @@
 package com.thrallwars.statistics.service;
 
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.thrallwars.statistics.config.RconTarget;
 import com.thrallwars.statistics.config.ServiceConfig;
 import com.thrallwars.statistics.dto.DataDump;
@@ -8,11 +10,16 @@ import com.thrallwars.statistics.entity.GatheringError;
 import com.thrallwars.statistics.entity.PlayerBankerWallet;
 import com.thrallwars.statistics.entity.PlayerWallet;
 import com.thrallwars.statistics.repo.*;
+import com.thrallwars.statistics.util.StatisticsUtils;
+import lombok.SneakyThrows;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -31,6 +38,7 @@ public class WalletStatisticsService {
     private final PlayerRepo playerRepo;
     private final GatheringErrorRepo gatheringErrorRepo;
     private final DiscordWebhookService discordWebhookService;
+    private final ObjectMapper objectMapper;
 
     public WalletStatisticsService(PlayerWalletRconRepo playerWalletRconRepo,
                                    BankerWalletRconRepo bankerWalletRconRepo,
@@ -40,7 +48,7 @@ public class WalletStatisticsService {
                                    ServiceConfig serviceConfig,
                                    PlayerRconRepo playerRconRepo,
                                    GatheringErrorRepo gatheringErrorRepo,
-                                   PlayerRepo playerRepo, DiscordWebhookService discordWebhookService) {
+                                   PlayerRepo playerRepo, DiscordWebhookService discordWebhookService, ObjectMapper objectMapper) {
         this.playerWalletRconRepo = playerWalletRconRepo;
         this.bankerWalletRconRepo = bankerWalletRconRepo;
         this.playerWalletRepo = playerWalletRepo;
@@ -51,6 +59,7 @@ public class WalletStatisticsService {
         this.playerRepo = playerRepo;
         this.gatheringErrorRepo = gatheringErrorRepo;
         this.discordWebhookService = discordWebhookService;
+        this.objectMapper = objectMapper;
     }
 
     public void gatherPlayerBankerData(Instant timestamp) {
@@ -67,6 +76,17 @@ public class WalletStatisticsService {
 
     public void gatherPlayerData(Instant timestamp) {
         runForEachActiveTarget(rconTarget -> gatherPlayerDataForTarget(rconTarget, timestamp));
+    }
+
+    @SneakyThrows
+    public void uploadZippedDumpToDiscord() {
+        DataDump dataDump = getDataDump();
+        String dataDumpAsString = objectMapper.writer(new DefaultPrettyPrinter()).writeValueAsString(dataDump);
+        byte[] bytes = StatisticsUtils.compressStringToGzip(dataDumpAsString);
+        DateFormat df = new SimpleDateFormat("dd_MMM_yyyy_kk_mm_ss");
+        String format = df.format(new Date());
+        discordWebhookService.publishInfo("Current data dump with all data, json format, gzip compressed will upload soon.");
+        discordWebhookService.publishFile(bytes, "data_dump_" + format + ".json.gzip");
     }
 
     public void createDataDump() {

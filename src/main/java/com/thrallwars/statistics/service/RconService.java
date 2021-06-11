@@ -36,6 +36,11 @@ public class RconService {
         return playerWalletRconRepo.queryWallets(rconTarget);
     }
 
+    public String executeSql(String sql, String target) {
+        var rcon = "sql \"" + sql + "\"";
+        RconTarget rconTarget = serviceConfig.findTarget(target);
+        return rconConnectionPool.executePooled(rconTarget, rcon);
+    }
 
     public List<PlayerBankerWallet> getBankerPlayerWallets(String target) {
         RconTarget rconTarget = serviceConfig.findTarget(target);

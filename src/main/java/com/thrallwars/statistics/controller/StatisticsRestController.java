@@ -2,12 +2,12 @@ package com.thrallwars.statistics.controller;
 
 import com.thrallwars.statistics.dto.DataDump;
 import com.thrallwars.statistics.entity.ClanBankerWallet;
-import com.thrallwars.statistics.entity.OnlinePlayer;
 import com.thrallwars.statistics.entity.PlayerBankerWallet;
 import com.thrallwars.statistics.entity.PlayerWallet;
 import com.thrallwars.statistics.repo.Player;
 import com.thrallwars.statistics.service.RconService;
 import com.thrallwars.statistics.service.StatisticsService;
+import com.thrallwars.statistics.util.rcon.RconConnectionPool;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
@@ -21,10 +21,12 @@ public class StatisticsRestController {
 
     private final RconService rconService;
     private final StatisticsService statisticsService;
+    private final RconConnectionPool rconConnectionPool;
 
-    public StatisticsRestController(RconService rconService, StatisticsService statisticsService) {
+    public StatisticsRestController(RconService rconService, StatisticsService statisticsService, RconConnectionPool rconConnectionPool) {
         this.rconService = rconService;
         this.statisticsService = statisticsService;
+        this.rconConnectionPool = rconConnectionPool;
     }
 
     @GetMapping("player-wallet")
@@ -101,6 +103,11 @@ public class StatisticsRestController {
     @PostMapping("online-players")
     void gatherOnlinePlayers() {
         statisticsService.gatherOnlinePlayers(Instant.now());
+    }
+
+    @PostMapping("rcon")
+    String executeRcon(@RequestBody String body) {
+        return rconService.executeSql(body, "TWSW");
     }
 
 }

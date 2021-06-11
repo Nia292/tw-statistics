@@ -150,6 +150,7 @@ public class StatisticsService {
     private void gatherOnlinePlayersForTarget(RconTarget rconTarget, Instant timestamp) {
         List<OnlinePlayer> onlinePlayers = onlinePlayersRconRepo.getOnlinePlayer(rconTarget);
         onlinePlayers.forEach(onlinePlayer -> onlinePlayer.setTimestampUTC(timestamp));
+        onlinePlayersRepo.saveAll(onlinePlayers);
     }
 
     private void runLoggingException(Runnable runnable, String operation) {

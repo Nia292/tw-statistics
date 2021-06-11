@@ -1,5 +1,10 @@
 package com.thrallwars.statistics.util;
 
+import com.thrallwars.statistics.dto.DataDump;
+import com.thrallwars.statistics.repo.Player;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.codec.digest.MessageDigestAlgorithms;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -7,6 +12,8 @@ import java.util.Base64;
 import java.util.zip.GZIPOutputStream;
 
 public class StatisticsUtils {
+
+    private static final DigestUtils digestUtils = new DigestUtils(MessageDigestAlgorithms.SHA_512);
 
     public static Integer parseLittleEndianHex(String hex) {
         String s = new StringBuilder()
@@ -31,6 +38,18 @@ public class StatisticsUtils {
             }
         }
         return byteStream.toByteArray();
+    }
+
+
+    public static void anonymizeDataDump(DataDump dataDump) {
+
+    }
+
+    private static void anonymizePlayer(Player player) {
+        player.setPlayerId(digestUtils.digestAsHex(player.getPlayerId()));
+        player.setCharName(digestUtils.digestAsHex(player.getCharName()));
+        player.setClanId(digestUtils.digestAsHex(player.getClanId()));
+        player.setClanName(digestUtils.digestAsHex(player.getClanName()));
     }
 
 }

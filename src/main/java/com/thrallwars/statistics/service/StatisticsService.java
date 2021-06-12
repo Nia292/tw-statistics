@@ -104,6 +104,10 @@ public class StatisticsService {
         runLoggingException(() ->  gatherClanBankerData(instant), "Gather Clan Banker Data");
         runLoggingException(() ->  gatherPlayerWalletData(instant), "Gather Player Wallet Data");
         runLoggingException(() ->  gatherPlayerData(instant), "Gather Player Data");
+    }
+
+    public void createOnlinePlayersDump() {
+        Instant instant = Instant.now();
         runLoggingException(() ->  gatherOnlinePlayers(instant), "Gather Online Players Data");
     }
 

@@ -26,6 +26,12 @@ public class ScheduledDumpService {
         this.discordWebhookService.publishInfo("Data dump completed @ " + Instant.now().toString());
     }
 
+    @Scheduled(cron = "0 15,30,45 * * * *")
+    public void createOnlinePlayersDump() {
+        statisticsService.createOnlinePlayersDump();
+        this.discordWebhookService.publishInfo("Collected online players @ " + Instant.now().toString());
+    }
+
     @Scheduled(cron = "0 15 13,1 * * *")
     public void uploadDataDump() {
         statisticsService.uploadZippedDumpToDiscord();

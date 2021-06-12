@@ -107,6 +107,14 @@ public class StatisticsService {
         runLoggingException(() ->  gatherOnlinePlayers(instant), "Gather Online Players Data");
     }
 
+    public void importDump(DataDump dataDump) {
+        clanBankerWalletRepo.saveAll(dataDump.getClanBankerWallets());
+        playerBankerWalletRepo.saveAll(dataDump.getPlayerBankerWallets());
+        playerWalletRepo.saveAll(dataDump.getPlayerWallets());
+        playerRepo.saveAll(dataDump.getPlayers());
+        onlinePlayersRepo.saveAll(dataDump.getOnlinePlayers());
+    }
+
     public DataDump getDataDump() {
         DataDump dataDump = new DataDump();
         dataDump.setClanBankerWallets(clanBankerWalletRepo.findAll());

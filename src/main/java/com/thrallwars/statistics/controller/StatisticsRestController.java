@@ -110,4 +110,9 @@ public class StatisticsRestController {
         return rconService.executeSql(body, "TWSW");
     }
 
+    @PostMapping("data-dump/restore")
+    void importDumpfile(@RequestBody DataDump dataDump) {
+        statisticsService.importDump(dataDump);
+    }
+
 }
